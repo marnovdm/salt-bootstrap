@@ -80,17 +80,20 @@ Else {
   [bool]$runservice = $True
 }
 
-# Create C:\tmp\ - if Vagrant doesn't upload keys and/or config it might not exist
-New-Item C:\tmp\ -ItemType directory -force | out-null
+# Create C:\APM\tmp\ - if Vagrant doesn't upload keys and/or config it might not exist
+New-Item C:\APM\tmp\ -ItemType directory -force | out-null
 
 # Copy minion keys & config to correct location
 New-Item C:\salt\conf\pki\minion\ -ItemType directory -force | out-null
 
 # Check if minion keys have been uploaded
-If (Test-Path C:\tmp\minion.pem) {
-  cp C:\tmp\minion.pem C:\salt\conf\pki\minion\
-  cp C:\tmp\minion.pub C:\salt\conf\pki\minion\
+If (Test-Path C:\APM\tmp\minion.pem) {
+  cp C:\APM\tmp\minion.pem C:\salt\conf\pki\minion\
+  cp C:\APM\tmp\minion.pub C:\salt\conf\pki\minion\
 }
+
+# Set download URL
+$url = 'https://repo.saltstack.com/windows/'
 
 # Detect architecture
 If ([IntPtr]::Size -eq 4) {
@@ -102,19 +105,19 @@ If ([IntPtr]::Size -eq 4) {
 # Download minion setup file
 Write-Host -NoNewline "Downloading Salt minion installer Salt-Minion-$version-$arch-Setup.exe"
 $webclient = New-Object System.Net.WebClient
-$url = "https://docs.saltstack.com/downloads/Salt-Minion-$version-$arch-Setup.exe"
-$file = "C:\tmp\salt.exe"
+$url = "$url/Salt-Minion-$version-$arch-Setup.exe"
+$file = "C:\APM\tmp\salt.exe"
 $webclient.DownloadFile($url, $file)
 
 # Install minion silently
 Write-Host -NoNewline "Installing Salt minion"
 #Wait for process to exit before continuing.
-C:\tmp\salt.exe /S /minion-name=$minion /master=$master | Out-Null
+C:\APM\tmp\salt.exe /S /minion-name=$minion /master=$master | Out-Null
 
 
 # Check if minion config has been uploaded
-If (Test-Path C:\tmp\minion) {
-  cp C:\tmp\minion C:\salt\conf\
+If (Test-Path C:\APM\tmp\minion) {
+  cp C:\APM\tmp\minion C:\salt\conf\
 }
 
 # Wait for salt-minion service to be registered before trying to start it
